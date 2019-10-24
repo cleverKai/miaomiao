@@ -6,7 +6,7 @@
             <!--        菜单-->
         <div class="movie_menu">
             <router-link tag="div" to="/move/city" class="city_name">
-                <span>大连</span><i class="iconfont icon-lower-triangle"></i>
+                <span>{{ $store.state.city.nm }}</span><i class="iconfont icon-lower-triangle"></i>
             </router-link>
             <div class="hot_swtich">
                 <router-link tag="div" to="/move/nowPlaying" class="hot_item">正在热映</router-link>
@@ -22,17 +22,48 @@
             </keep-alive>
         </div>
         <TabBar></TabBar>
+<!--           <MessageBox></MessageBox>-->
        </div>
 </template>
 
 <script>
     import Header from '@/components/header/Header'
     import TabBar from '@/components/tabbar/TabBar'
+    import {messageBox} from '@/components/js/index'
+    // import MessageBox from '@/components/js/messageBox/MessageBox'
     export default {
         name: "Move",
         components:{
             Header,
-            TabBar
+            TabBar,
+        },
+        mounted() {
+            setTimeout(()=>{
+            //请求城市定位数据接口
+                this.$axios.get('/api/getLocation').then((res)=>{
+                    console.log(res);
+                let msg = res.data.msg;
+                if(msg === "ok"){
+                    let cityNm = res.data.data.nm;
+                    let cityId = res.data.data.id;
+                    if(this.$store.state.city.id == cityId ){
+                        return ;
+                    }else {
+                        messageBox({
+                            title: '是否定位到当前城市',
+                            content: cityNm,
+                            cancel: '取消',
+                            ok: '切换定位',
+                            handleOk() {
+                                window.localStorage.setItem('nowNm', cityNm);
+                                window.localStorage.setItem('nowId', cityId);
+                                window.location.reload();
+                            }
+                        });
+                    }
+                }
+            })
+            },3000)
         }
     }
 </script>
