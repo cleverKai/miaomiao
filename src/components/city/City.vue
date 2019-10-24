@@ -1,20 +1,25 @@
 <template>
     <div class="city_body">
         <div class="city_list">
-            <div class="city_hot">
-                <h2>热门城市</h2>
-                <ul class="clearfix">
-                    <li v-for="item in hotCities" :key="item.id">{{ item.nm }}</li>
-                </ul>
-            </div>
-            <div class="city_sort" ref="city_sort">
-                <div v-for="item in cityList" :key="item.index">
-                    <h2>{{ item.index }}</h2>
-                    <ul>
-                        <li v-for="itemList in item.list" :key="itemList.id">{{ itemList.nm }}</li>
+            <Loading v-if="isLoading"></Loading>
+            <BScroll ref="city_List">
+              <div>
+                <div class="city_hot">
+                    <h2>热门城市</h2>
+                    <ul class="clearfix">
+                        <li v-for="item in hotCities" :key="item.id" @tap="handleToCity(item.nm , item.id)">{{ item.nm }}</li>
                     </ul>
                 </div>
-            </div>
+                <div class="city_sort" ref="city_sort">
+                    <div v-for="item in cityList" :key="item.index">
+                        <h2>{{ item.index }}</h2>
+                        <ul>
+                            <li v-for="itemList in item.list" :key="itemList.id" @tap="handleToCity(itemList.nm , itemList.id)">{{ itemList.nm }}</li>
+                        </ul>
+                    </div>
+                </div>
+              </div>
+            </BScroll>
         </div>
         <div class="city_index">
             <ul>
@@ -31,19 +36,33 @@
             return{
                 cityList:[],
                 hotCities:[],
+                isLoading : true,
             }
         },
         mounted() {
-            this.$axios.get("/api/cityList").then((res)=>{
-                let msg = res.data.msg;
-                if(msg === "ok"){
-                    let cities = res.data.data.cities;
-                    // console.log(data);
-                  let { cityList, hotCities } = this.formatCityList(cities);
-                  this.cityList = cityList;
-                  this.hotCities = hotCities;
-                }
-            })
+            //从本地存储取出值
+            let cityList = window.localStorage.getItem("cityList");
+            let hotCities = window.localStorage.getItem("hotCities");
+            if( cityList && hotCities ){
+                this.cityList = JSON.parse(cityList);
+                this.hotCities = JSON.parse(hotCities);
+                this.isLoading = false;
+            }else {
+                this.$axios.get("/api/cityList").then((res) => {
+                    let msg = res.data.msg;
+                    if (msg === "ok") {
+                        this.isLoading = false;
+                        let cities = res.data.data.cities;
+                        // console.log(data);
+                        let {cityList, hotCities} = this.formatCityList(cities);
+                        this.cityList = cityList;
+                        this.hotCities = hotCities;
+                        // 将城市数据存储到本地,只能存储字符串类型
+                        window.localStorage.setItem("cityList", JSON.stringify(cityList));
+                        window.localStorage.setItem("hotCities", JSON.stringify(hotCities));
+                    }
+                })
+            }
         },
         methods:{
             formatCityList(cities){
@@ -95,8 +114,17 @@
             //定义移动端触摸事件，点击跳转到相应城市
             handleToIndex(index){
                 let h2 = this.$refs.city_sort.getElementsByTagName("h2");
-                this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop;
+                // this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop;
+                this.$refs.city_List.toScrollTop(-h2[index].offsetTop)
             },
+            //给所有热门城市添加 tap事件
+            handleToCity(nm , id){
+                 this.$store.commit("city/CITY_INFO",{ nm , id });
+                 //记录我当前选择的城市
+                 window.localStorage.setItem("nowNm",nm);
+                 window.localStorage.setItem("nowId",id);
+                 this.$router.push("/move/nowPlaying");
+            }
         }
     }
 </script>

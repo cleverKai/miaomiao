@@ -9,6 +9,12 @@ Vue.config.productionTip = false
 Vue.filter('setWH',(url,arg)=>{
     return url.replace(/w\.h/,arg);
 });
+// 全局引入BScroll组件
+import BScroll from '@/components/better-scroll/BScroll'
+Vue.component('BScroll',BScroll);
+//全局引入Loading组件
+import Loading from '@/components/loading/Loading'
+Vue.component('Loading',Loading)
 new Vue({
   router,
   store,

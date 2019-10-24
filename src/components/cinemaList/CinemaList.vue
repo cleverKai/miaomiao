@@ -1,20 +1,23 @@
 <template>
     <div class="cinema_body">
-        <ul>
-            <li v-for="item in cinemas" :key="item.id">
-                <div>
-                    <span>{{ item.nm }}</span>
-                    <span class="q"><span class="price">{{ item.sellPrice }}</span> 元起</span>
-                </div>
-                <div class="address">
-                    <span>{{ item.addr }}</span>
-                    <span>{{ item.distance }}</span>
-                </div>
-                <div class="card">
-                    <div v-for="(num,key) in item.tag" v-if="num === 1" :class=" key | classCard " :key="key">{{ key | formatCard }}</div>
-                </div>
-            </li>
-        </ul>
+        <Loading v-if="isLoading"></Loading>
+          <BScroll v-else>
+            <ul>
+                <li v-for="item in cinemas" :key="item.id">
+                    <div>
+                        <span>{{ item.nm }}</span>
+                        <span class="q"><span class="price">{{ item.sellPrice }}</span> 元起</span>
+                    </div>
+                    <div class="address">
+                        <span>{{ item.addr }}</span>
+                        <span>{{ item.distance }}</span>
+                    </div>
+                    <div class="card">
+                        <div v-for="(num,key) in item.tag" v-if="num === 1" :class=" key | classCard " :key="key">{{ key | formatCard }}</div>
+                    </div>
+                </li>
+            </ul>
+          </BScroll>
     </div>
 </template>
 <script>
@@ -23,17 +26,27 @@
         data(){
             return {
                 cinemas:[],
+                isLoading :true,
+                prevCityId : -1,
             }
 
        },
-        mounted() {
-            this.$axios.get('/api/cinemaList?cityId=10').then((res)=>{
-                let msg = res.data.msg;
-                if( msg === "ok"){
-                    this.cinemas = res.data.data.cinemas;
-                    console.log(this.cinemas);
-                }
-            });
+        activated() {
+            let cityId = this.$store.state.city.id;
+            if(this.prevCityId === cityId){
+                return ;
+            } else {
+                this.isLoading = true;
+                this.$axios.get('/api/cinemaList?cityId='+ cityId).then((res) => {
+                    let msg = res.data.msg;
+                    if (msg === "ok") {
+                        this.cinemas = res.data.data.cinemas;
+                        this.isLoading = false;
+                        this.prevCityId = cityId;
+                        console.log(this.cinemas);
+                    }
+                });
+            }
         },
         //定义局部过滤器
         filters :{
