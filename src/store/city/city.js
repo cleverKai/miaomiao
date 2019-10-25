@@ -6,7 +6,6 @@
   const actions ={
 
   };
-
   const mutations ={
       CITY_INFO( state , payload){
         state.nm = payload.nm;
