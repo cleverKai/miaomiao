@@ -6,6 +6,9 @@
         <div>
             <input v-model="password" class="login_text" type="password" placeHolder="请输入您的密码" >
         </div>
+        <div>
+            <input type="text" class="login_text" v-model="verifyImg" placeHolder="请输入您的验证码" > <img ref="verifyImg" @touchstart="handleToVerifyImg" src="/api2/users/verifyImg" alt="">
+        </div>
         <div class="login_btn">
             <input type="submit" value="登录" @touchstart="handleToLogin">
         </div>
@@ -25,13 +28,15 @@
             return {
                 username: '',
                 password: '',
+                verifyImg:''
             }
         },
         methods:{
             handleToLogin(){
                 this.$axios.post('/api2/users/login',{
                     username: this.username,
-                    password: this.password
+                    password: this.password,
+                    verifyImg: this.verifyImg
                 }).then((res)=>{
                     let status = res.data.status;
                     const This = this;
@@ -50,10 +55,16 @@
                         messageBox({
                             title:'登录',
                             content:res.data.msg,
-                            ok:'确定'
+                            ok:'确定',
+                            handleOk(){
+                                document.querySelector('img').src = '/api2/users/verifyImg?' + Math.random();
+                            }
                         });
                     }
                 })
+            },
+            handleToVerifyImg(ev){
+                ev.target.src = '/api2/users/verifyImg?' + Math.random();
             }
         }
     }
