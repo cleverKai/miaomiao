@@ -1,10 +1,10 @@
 <template>
     <div class="register_body">
         <div class="register_email">
-            邮箱：<input v-model="email" class="register_text" type="text"> <button @touchstart="handleToVerify">发送验证码</button>
+            邮箱：<input v-model="email" class="register_text" type="text"> <button :disabled="disabled" @touchstart="handleToVerify">{{ verifyInfo }}</button>
         </div>
         <div>
-            用户名：<input v-model="username" class="register_text" type="text">
+            用户名：<input v-model="username"  class="register_text" type="text">
         </div>
         <div>
             密码：<input v-model="password" class="register_text" type="password">
@@ -31,19 +31,28 @@
                 email:'',
                 username:'',
                 password:'',
-                verify:''
+                verify:'',
+                verifyInfo:'发送验证码',
+                disabled: false
             }
         },
         methods :{
             //发送邮箱验证码
             handleToVerify(){
+                if(this.disabled){
+                    return;
+                }
                 this.$axios.get('/api2/users/verify?email=' + this.email,).then((res) =>{
                     let status = res.data.status;
+                    let This = this;
                     if(status === 0){
                         messageBox({
                             title :'验证码' ,
                             content :'验证码已发送到邮箱',
-                            ok :'确认'
+                            ok :'确认',
+                            handleOk(){
+                                This.countDown();
+                            }
                         });
                     }else {
                         messageBox({
@@ -75,11 +84,28 @@
                     }else {
                         messageBox({
                             title :'用户注册' ,
-                            content : res.data.msg +',请用户重新注册',
-                            ok :'确认'
+                            content : res.data.msg ,
+                            ok :'确认',
+                            handleOk() {
+                                This.$router.push('/mine/register');
+                            }
                         });
                     }
                 });
+            },
+            countDown(){
+                this.disabled = true;
+                let count = 60 ;
+                let timer = setInterval(()=>{
+                    count--;
+                    this.verifyInfo = "剩余" + count +"秒";
+                    if( count === 0 ){
+                        this.disabled = false;
+                        count = 60;
+                        this.verifyInfo = "再次发送";
+                        clearInterval(timer);
+                    }
+                },1000);
             }
         }
     }

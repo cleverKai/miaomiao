@@ -49,7 +49,7 @@
                     }else {
                         messageBox({
                             title:'登录',
-                            content:'登录失败',
+                            content:res.data.msg,
                             ok:'确定'
                         });
                     }
