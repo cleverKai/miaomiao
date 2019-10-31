@@ -5,6 +5,13 @@
                 border
                 style="width: 100%">
             <el-table-column
+                    prop="userHead"
+                    label="用户头像">
+                <template slot-scope="scope">
+                    <img  class="userHead" :src="scope.row.userHead" alt="">
+                </template>
+            </el-table-column>
+            <el-table-column
                     prop="date"
                     label="注册日期">
             </el-table-column>
@@ -107,4 +114,10 @@
   .page{
       margin-top: 20px;
   }
+    .userHead{
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
 </style>
